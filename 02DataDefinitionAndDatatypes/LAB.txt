@@ -1,0 +1,45 @@
+-- task 01
+CREATE DATABASE `gamebar`;
+
+USE `gamebar`;
+
+-- task 02
+CREATE TABLE IF NOT EXISTS `employees` (
+  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
+  `first_name` varchar(50),
+  `last_name` varchar(50)
+);
+
+CREATE TABLE IF NOT EXISTS `categories` (
+  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
+  `name` varchar(50) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS `products` (
+  `id` int(11) AUTO_INCREMENT PRIMARY KEY,
+  `name` varchar(50) NOT NULL,
+  `category_id` int(11)
+);
+
+-- task 03
+INSERT INTO `employees` (`first_name`,`last_name`)
+	VALUES ('Petyr','Petrov'),
+		('Petyr2','Petrov'),
+		('Petyr3','Petrov');
+
+-- task 04
+ALTER TABLE `employees`
+	ADD `middle_name` VARCHAR(50);
+
+-- task 05
+ALTER TABLE `products`
+	ADD CONSTRAINT `FK_products_categories` 
+	FOREIGN KEY (`category_id`) 
+	REFERENCES `categories` (`id`);
+
+-- task 06
+ALTER TABLE `employees`
+	MODIFY COLUMN `middle_name` VARCHAR(100);
+	
+-- task 07
+DROP DATABASE `gamebar`;

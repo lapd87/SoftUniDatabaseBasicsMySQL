@@ -1,0 +1,99 @@
+USE `camp`;
+
+-- task 01
+CREATE TABLE `Mountains` (
+    `id` INT PRIMARY KEY,
+    `name` VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE `Peaks` (
+    `id` INT PRIMARY KEY,
+    `name` VARCHAR(50) NOT NULL,
+    `mountain_id` INT
+);
+
+ALTER TABLE `Peaks`
+	ADD CONSTRAINT `FK_peaks_mountains`
+	FOREIGN KEY (`mountain_id`) REFERENCES `Mountains`(`id`);
+	
+-- task 02
+CREATE TABLE `Authors` (
+    `id` INT PRIMARY KEY,
+    `name` VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE `Books` (
+    `id` INT PRIMARY KEY,
+    `name` VARCHAR(50) NOT NULL,
+    `author_id` INT
+);
+
+ALTER TABLE `Books`
+	ADD CONSTRAINT `FK_books_authors`
+	FOREIGN KEY (`author_id`) 
+    REFERENCES `Authors`(`id`) ON DELETE CASCADE;
+    
+-- task 03
+SELECT 
+    `vehicles`.`driver_id`,
+    `vehicles`.`vehicle_type`,
+    CONCAT(`campers`.`first_name`,
+            ' ',
+            `campers`.`last_name`) AS `driver_name`
+FROM
+    `campers`
+        JOIN
+    `vehicles` ON `vehicles`.`driver_id` = `campers`.`id`;
+    
+-- task 04
+SELECT 
+    `routes`.`starting_point` AS `route_starting_point`,
+    `routes`.`end_point` AS `route_ending_point`,
+    `routes`.`leader_id`,
+    CONCAT(`campers`.`first_name`,
+            ' ',
+            `campers`.`last_name`) AS `leader_name`
+FROM
+    `routes`
+        JOIN
+    `campers` ON `routes`.`leader_id` = `campers`.`id`;
+    
+-- task 05
+CREATE DATABASE `Project Management DB`;
+
+CREATE TABLE `clients` (
+    `id` INT PRIMARY KEY,
+    `client_name` VARCHAR(50),
+    `project_id` INT
+);
+
+CREATE TABLE `projects` (
+    `id` INT PRIMARY KEY,
+    `client_id` INT,
+    `project_lead_id` INT
+);
+
+CREATE TABLE `employees` (
+    `id` INT PRIMARY KEY,
+    `first_name` VARCHAR(30),
+    `last_name` VARCHAR(30),
+    `project_id` INT
+);
+
+ALTER TABLE `clients`
+	ADD CONSTRAINT `FK_clients_projects`
+	FOREIGN KEY (`project_id`) 
+		REFERENCES `projects`(`id`);
+        
+ALTER TABLE `projects`
+	ADD CONSTRAINT `FK_projects_employees`
+	FOREIGN KEY (`project_lead_id`) 
+		REFERENCES `employees`(`id`),
+	ADD CONSTRAINT `FK_projects_clients`
+	FOREIGN KEY (`client_id`) 
+		REFERENCES `clients`(`id`);        
+        
+ALTER TABLE `employees`
+	ADD CONSTRAINT `FK_employees_projects`
+	FOREIGN KEY (`project_id`) 
+		REFERENCES `projects`(`id`);                    	

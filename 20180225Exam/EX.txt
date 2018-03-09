@@ -1,0 +1,211 @@
+-- task 01
+CREATE DATABASE `Buhtig`;
+
+USE `Buhtig`;
+
+CREATE TABLE `users` (
+    `id` INT PRIMARY KEY AUTO_INCREMENT,
+    `username` VARCHAR(30) NOT NULL UNIQUE,
+    `password` VARCHAR(30) NOT NULL,
+    `email` VARCHAR(50) NOT NULL
+);
+
+
+CREATE TABLE `repositories` (
+    `id` INT PRIMARY KEY AUTO_INCREMENT,
+    `name` VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE `repositories_contributors` (
+    `repository_id` INT,
+    `contributor_id` INT,
+    CONSTRAINT `FK_repositories_contributors_repositories_id` FOREIGN KEY (`repository_id`)
+        REFERENCES `repositories` (`id`),
+    CONSTRAINT `FK_contributor_id_users_id` FOREIGN KEY (`contributor_id`)
+        REFERENCES `users` (`id`)
+);
+
+CREATE TABLE `issues` (
+    `id` INT PRIMARY KEY AUTO_INCREMENT,
+    `title` VARCHAR(255) NOT NULL,
+    `issue_status` VARCHAR(6) NOT NULL,
+    `repository_id` INT NOT NULL,
+    `assignee_id` INT NOT NULL,
+    CONSTRAINT `FK_repository_id_repositories_id` FOREIGN KEY (`repository_id`)
+        REFERENCES `repositories` (`id`),
+    CONSTRAINT `FK_assignee_id_users_id` FOREIGN KEY (`assignee_id`)
+        REFERENCES `users` (`id`)
+);
+
+CREATE TABLE `commits` (
+    `id` INT PRIMARY KEY AUTO_INCREMENT,
+    `message` VARCHAR(255) NOT NULL,
+    `issue_id` INT,
+    `repository_id` INT NOT NULL,
+    `contributor_id` INT NOT NULL,
+    CONSTRAINT `FK_issue_id_issues_id` FOREIGN KEY (`issue_id`)
+        REFERENCES `issues` (`id`),
+    CONSTRAINT `FK_repository_id2_repositories_id` FOREIGN KEY (`repository_id`)
+        REFERENCES `repositories` (`id`),
+    CONSTRAINT `FK_contributor2_id_users_id` FOREIGN KEY (`contributor_id`)
+        REFERENCES `users` (`id`)
+);
+
+CREATE TABLE `files` (
+    `id` INT PRIMARY KEY AUTO_INCREMENT,
+    `name` VARCHAR(100) NOT NULL,
+    `size` DECIMAL(10 , 2 ) NOT NULL,
+    `parent_id` INT,
+    `commit_id` INT NOT NULL,
+    CONSTRAINT `FK_parent_id_files_id` FOREIGN KEY (`parent_id`)
+        REFERENCES `files` (`id`),
+    CONSTRAINT `FK_commit_id_commits_id` FOREIGN KEY (`commit_id`)
+        REFERENCES `commits` (`id`)
+);
+-- task 02
+USE `Buhtig`;
+
+INSERT INTO `issues` ( `title`,`issue_status`,`repository_id`,`assignee_id`)
+SELECT 
+    CONCAT('Critical Problem With ',
+            `f`.`name`,
+            '!'),
+    'open',
+    CEIL(`f`.`id` * 2 / 3),
+    `c`.`contributor_id`
+FROM
+    `files` AS `f`
+        JOIN
+    `commits` AS `c`
+    ON `f`.`commit_id` = `c`.`id`
+WHERE
+    `f`.`id` BETWEEN 46 AND 50;
+    
+-- task 03
+SET foreign_key_checks = 0;
+
+UPDATE `repositories_contributors` 
+SET 
+    `repository_id` =  (SELECT 
+            *
+        FROM
+            (SELECT 
+                `id`
+            FROM
+                `repositories` AS `r`
+            LEFT JOIN `repositories_contributors` AS `rc` ON `r`.`id` = `rc`.`repository_id`
+            WHERE
+                `rc`.`repository_id` IS NULL
+            ORDER BY `r`.`id`
+            LIMIT 1) AS `temp`)
+WHERE
+	`contributor_id` = `repository_id`;
+    
+SET foreign_key_checks = 1;     
+
+-- task 04
+DELETE `r` , `i` FROM `repositories` AS `r`
+        LEFT JOIN
+    `issues` AS `i` ON `r`.`id` = `i`.`repository_id` 
+WHERE
+    `i`.`repository_id` IS NULL
+    
+-- task 05
+SELECT 
+    `id`, `username`
+FROM
+    `users`
+ORDER BY `id`;
+
+-- task 06
+SELECT 
+    *
+FROM
+    `repositories_contributors`
+WHERE
+    `contributor_id` = `repository_id`
+ORDER BY `repository_id`;
+
+-- task 07
+SELECT 
+    `id`, `name`, `size`
+FROM
+    `files`
+WHERE
+    `size` > 1000 AND `name` LIKE ('%html%')
+ORDER BY `size` DESC;
+
+-- task 08
+SELECT 
+    `i`.`id`,
+    CONCAT(`u`.`username`, ' : ', `i`.`title`) AS `issue_assignee`
+FROM
+    `issues` AS `i`
+        JOIN
+    `users` AS `u` ON `i`.`assignee_id` = `u`.`id`
+ORDER BY `i`.`id` DESC;
+
+--- task 09
+SELECT 
+    `f`.`id`, `f`.`name`, CONCAT(`f`.`size`, 'KB') AS `size`
+FROM
+    `files` AS `f`
+        LEFT JOIN
+    `files` AS `ff` ON `f`.`id` = `ff`.`parent_id`
+WHERE
+    `ff`.`parent_id` IS NULL
+ORDER BY `f`.`id`;
+
+-- task 10
+SELECT 
+    `r`.`id`, `r`.`name`, COUNT(`i`.`repository_id`) AS `issues`
+FROM
+    `repositories` AS `r`
+        JOIN
+    `issues` AS `i` ON `r`.`id` = `i`.`repository_id`
+GROUP BY `i`.`repository_id`
+ORDER BY `issues` DESC , `r`.`id`
+LIMIT 5;
+
+-- task 11
+SELECT 
+    `r`.`id`,
+    `r`.`name`,
+    COUNT(DISTINCT (`c`.`contributor_id`)) AS `commits`,
+    COUNT(DISTINCT (`rc`.`contributor_id`)) AS `contributors`
+FROM
+    `repositories_contributors` AS `rc`
+        LEFT JOIN
+    `repositories` AS `r` ON `rc`.`repository_id` = `r`.`id`
+        LEFT JOIN
+    `commits` AS `c` ON `r`.`id` = `c`.`repository_id`
+GROUP BY `r`.`id`
+ORDER BY `contributors` DESC , `r`.`id`
+LIMIT 1;
+
+
+-- task 12
+
+
+-- task 16
+DROP PROCEDURE IF EXISTS `udp_findbyextension`;
+
+DELIMITER $$
+
+CREATE PROCEDURE `udp_findbyextension`(`extension` VARCHAR(50))
+BEGIN
+
+SELECT 
+    `id`, `name` AS `caption`, CONCAT(`size`, 'KB') AS `user`
+FROM
+    `files`
+WHERE
+    `name` LIKE (CONCAT('%.',`extension`))
+ORDER BY `id`;
+
+END $$
+
+DELIMITER ;
+
+CALL `udp_findbyextension`('html');
+    

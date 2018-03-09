@@ -1,0 +1,44 @@
+USE `book_library`;
+
+-- task 01
+SELECT 
+    `title`
+FROM
+    `books`
+WHERE
+    `title` LIKE ('The%');
+    
+-- task 02
+UPDATE `books` 
+SET 
+    `title` = REPLACE(`title`, 'The', '***')
+WHERE
+    `title` LIKE ('The%');
+
+SELECT 
+    `title`
+FROM
+    `books`
+WHERE
+    `title` LIKE ('***%');
+    
+-- task 03
+SELECT 
+    ROUND(SUM(`cost`), 2) AS 'Sum'
+FROM
+    `books`;
+    
+-- task 04
+SELECT 
+    CONCAT_WS(' ', `first_name`, `last_name`) AS 'Full Name',
+    TIMESTAMPDIFF(DAY, `born`, `died`) AS 'Days Lived'
+FROM
+    `authors`;
+    
+-- task 05                
+SELECT 
+    `title`
+FROM
+    `books`
+WHERE
+    `title` LIKE ('%Harry Potter%');
